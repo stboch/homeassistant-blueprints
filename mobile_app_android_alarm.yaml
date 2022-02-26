@@ -1,0 +1,40 @@
+blueprint:
+  name: Mobile App Android Notification Command Set Alarm
+  description: >-
+    Android Mobile App supports several notification command option
+    these blueprints provide any easy way to use these features without complex setup.
+  domain: script
+  source_url: https://github.com/stboch/homeassitant-blueprints/mobile_app_android_alarm.yaml
+  input:
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications.
+      selector:
+        device:
+          integration: mobile_app
+    command_choice:
+      name: Command Choice
+      description: Choose when alarm to trigger
+      selector:
+        time:
+
+mode: restart
+
+variables:
+  timeinput: !input command_choice
+## These are used to quickly change a blueprint to support every different notification commands
+  message: "command_activity"
+
+sequence:
+  - alias: "Send notification"
+    domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    data:
+      group: |
+        {% set timelist = timeinput.split(':') %}
+        {% set timehour = timelist[0] %}
+        {% set timemin = timelist[1] %}
+        android.intent.extra.alarm.HOUR:{{timehour}},android.intent.extra.alarm.MINUTES:{{timemin}},android.intent.extra.alarm.SKIP_UI:true
+      tag: android.intent.action.SET_ALARM
+    message: '{{ message }}'
