@@ -26,7 +26,7 @@ mode: restart
 variables:
 ## These are used to quickly change a blueprint to support every different notification commands
   title: !input command_choice
-  message: "command__high_accuracy_mode"
+  message: "command_high_accuracy_mode"
 
 sequence:
   - alias: "Send notification"
