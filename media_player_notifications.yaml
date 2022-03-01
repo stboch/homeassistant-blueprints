@@ -1,0 +1,86 @@
+blueprint:
+  name: Media Player Notification
+  description: >-
+    This allows notification script creation for media players, allows
+    for a input toggle (input_boolean) to control notification usage.
+    There is a ability to override the disable notification function by setting critical: True
+    The format of the script accepts data: 
+    title: (message title) used to display on mobile devices and screens that support notification
+    message: (message) this is the TTS that is read or displayed on the device
+    critical: (True/False) This is used to override DND and input_boolean.
+  domain: script
+  source_url: https://github.com/stboch/homeassistant-blueprints/blob/main/media_player_notification.yaml
+  input:
+    tts:
+      name: Text to Speech Processor
+      description: Select the configured TTS engine for media_player notifications. 
+      selector:
+        select:
+          options:
+            - google_say
+            - cloud_say
+            - microsoft_say
+            - picotts_say
+            - polly_say
+    notify_device:
+      name: Device to notify
+      description: Device needs to run the official Home Assistant app to receive notifications.
+      selector:
+        entity:
+          domain: media_player
+    input_device:
+      name: Input Boolean for device (This already needs to have been created)
+      description: Choose the input boolean that will be used to control if this device is in Do Not Disturb mode.
+      selector:
+        entity:
+          domain: input_boolean
+    limit_playing:
+      name: Device Playing override
+      description: This will control if the device will override playing media with the TTS  (Default behavior is only disturb on critical)
+      selector:
+        boolean:
+
+variables:
+  tts: !input tts
+  limit_playing: !input limit_playing
+sequence:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: '{{ critical }} '
+        sequence:
+          - data:
+              entity_id: !input notify_device
+              message: '{{ message }}'
+            service: 'tts.{{tts}}'
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: !input input_device
+                state: 'on'
+              - condition: not
+                conditions:
+                  - condition: state
+                    entity_id: !input notify_device
+                    state: playing
+        sequence:
+          - data:
+              entity_id: !input notify_device
+              message: '{{ message }}'
+            service: 'tts.{{tts}}'
+      - conditions:
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: !input input_device
+                state: 'on'
+              - condition: template
+                value_template: '{{ limit_playing }}'
+        sequence:
+          - data:
+              entity_id: !input notify_device
+              message: '{{ message }}'
+            service: 'tts.{{tts}}'
+    default: []
+mode: single
