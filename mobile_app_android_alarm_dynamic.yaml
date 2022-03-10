@@ -1,6 +1,7 @@
 blueprint:
   name: Mobile App Android Notification Command Set Alarm via Script Variable
   description: >-
+    When calling this script add time: 'HH:MM' for the time to be passed to the input.
     Android Mobile App supports several notification command option
     these blueprints provide any easy way to use these features without complex setup.
   domain: script
